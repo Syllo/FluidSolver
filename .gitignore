@@ -1,0 +1,9 @@
+.ycm_extra_conf.py
+*.gcno
+*.o
+main
+*.dat
+.ctags
+*.gcda
+*build*
+doc/*.pdf
