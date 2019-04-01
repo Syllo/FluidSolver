@@ -28,6 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <tgmath.h>
 
@@ -84,6 +85,8 @@ static void set_bnd(size_t M, size_t N, enum border_condition b,
   x[M - 1][N - 1] = AHalf * (x[M - 1][N - 2] + x[M - 2][N - 1]);
 }
 
+extern double rand_skip_percent;
+
 static void lin_solve(size_t M, size_t N, enum border_condition b,
                       float x[restrict M][N], float x0[restrict M][N], float a,
                       float c) {
@@ -91,6 +94,8 @@ static void lin_solve(size_t M, size_t N, enum border_condition b,
   for (size_t k = 0; k < 20; k++) {
     for (size_t i = 1; i < M - 1; ++i) {
       for (size_t j = 1; j < N - 1; ++j) {
+        if (drand48() < rand_skip_percent)
+          continue;
         x[i][j] = (x0[i][j] + a * (x[i - 1][j] + x[i + 1][j] + x[i][j - 1] +
                                    x[i][j + 1])) /
                   c;

@@ -44,6 +44,7 @@ static const struct option opt_options[] = {
     {"3d", no_argument, 0, 'p'},
     {"setup-file", required_argument, 0, 's'},
     {"output-file", required_argument, 0, 'o'},
+    {"rand-skip", required_argument, 0, 'R'},
     {0, 0, 0, 0}};
 
 static const char help_string[] =
@@ -54,7 +55,9 @@ static const char help_string[] =
     "\n  -s --setup-file  : Load a simulation setup file"
     "\n  -o --output-file : Simulation output file";
 
-static const char options[] = ":ps:o:vh";
+static const char options[] = ":ps:o:vhR:";
+
+double rand_skip_percent = 0.;
 
 int main(int argc, char **argv) {
   struct solverData solverData = {.dim = solver_dimension_twoD};
@@ -92,6 +95,17 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
       }
       break;
+    case 'R': {
+      int sscanf_return = sscanf(optarg, "%lf", &rand_skip_percent);
+      if (sscanf_return == EOF || sscanf_return == 0 ||
+          rand_skip_percent < 0. || rand_skip_percent > 1.) {
+        fprintf(stderr,
+                "Please enter a floating point number between 0 and 1 for the "
+                "random skip value "
+                "instead of \"-%c %s\"\n",
+                optchar, optarg);
+      }
+    } break;
     default:
       fprintf(stderr, "Unrecognized option %c\n", optopt);
       exit(EXIT_FAILURE);
@@ -103,6 +117,8 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Error: No configuration file selected\n");
     exit(EXIT_FAILURE);
   }
+
+  srand48(time(NULL));
 
   size_t num_steps;
   initialize_solver(config_path, &num_steps, &solverData);

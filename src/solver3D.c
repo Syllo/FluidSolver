@@ -119,6 +119,8 @@ static void set_bnd3D(size_t M, size_t N, size_t O, enum border_condition b,
                 x[M - 2][N - 1][O - 1]);
 }
 
+extern double rand_skip_percent;
+
 static void lin_solve3D(size_t M, size_t N, size_t O, enum border_condition b,
                         float x[restrict M][N][O], float x0[restrict M][N][O],
                         float a, float c) {
@@ -127,6 +129,8 @@ static void lin_solve3D(size_t M, size_t N, size_t O, enum border_condition b,
     for (size_t i = 1; i < M - 1; ++i) {
       for (size_t j = 1; j < N - 1; ++j) {
         for (size_t k = 1; k < O - 1; ++k) {
+          if (drand48() < rand_skip_percent)
+            continue;
           x[i][j][k] = (x0[i][j][k] + a * (x[i - 1][j][k] + x[i + 1][j][k] +
                                            x[i][j - 1][k] + x[i][j + 1][k] +
                                            x[i][j][k - 1] + x[i][j][k + 1])) /
