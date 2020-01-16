@@ -29,7 +29,7 @@ maxdens <- max(simTableOriginal$density)
 mindens <- min(simTableOriginal$density)
 range  <- stdError(maxdens,mindens)
 
-
 summaryData <- data.frame(unclass(summary(stdError(simTableAcr$density, simTableOriginal$density) / (range))))
 names(summaryData) <- ""
 print(summaryData, digits = 3, zero.print = "0")
+cat(sprintf("Range %.3f\n", range))

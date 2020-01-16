@@ -45,6 +45,7 @@ static const struct option opt_options[] = {
     {"setup-file", required_argument, 0, 's'},
     {"output-file", required_argument, 0, 'o'},
     {"rand-skip", required_argument, 0, 'R'},
+    {"sort-skip", no_argument, 0, 'S'},
     {0, 0, 0, 0}};
 
 static const char help_string[] =
@@ -55,9 +56,10 @@ static const char help_string[] =
     "\n  -s --setup-file  : Load a simulation setup file"
     "\n  -o --output-file : Simulation output file";
 
-static const char options[] = ":ps:o:vhR:";
+static const char options[] = ":ps:o:vhR:S";
 
 double rand_skip_percent = 0.;
+bool sort_skip = false;
 
 int main(int argc, char **argv) {
   struct solverData solverData = {.dim = solver_dimension_twoD};
@@ -106,6 +108,9 @@ int main(int argc, char **argv) {
                 optchar, optarg);
       }
     } break;
+    case 'S':
+      sort_skip = true;
+      break;
     default:
       fprintf(stderr, "Unrecognized option %c\n", optopt);
       exit(EXIT_FAILURE);

@@ -28,6 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <tgmath.h>
@@ -86,23 +87,70 @@ static void set_bnd(size_t M, size_t N, enum border_condition b,
 }
 
 extern double rand_skip_percent;
+extern bool sort_skip;
+
+struct dataPosDeviation {
+  double previous_val;
+  double error;
+  size_t posX, posY;
+};
+
+static int compareDeviation(const void *a, const void *b) {
+  const struct dataPosDeviation *data1 = (const struct dataPosDeviation *)a;
+  const struct dataPosDeviation *data2 = (const struct dataPosDeviation *)b;
+  if (data1->error < data2->error) {
+    return -1;
+  } else {
+    if (data1->error > data2->error) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+}
 
 static void lin_solve(size_t M, size_t N, enum border_condition b,
                       float x[restrict M][N], float x0[restrict M][N], float a,
                       float c) {
+  struct dataPosDeviation(*dpd)[N - 2] =
+      malloc(sizeof(struct dataPosDeviation[M - 2][N - 2]));
 
   for (size_t k = 0; k < 20; k++) {
     for (size_t i = 1; i < M - 1; ++i) {
       for (size_t j = 1; j < N - 1; ++j) {
-        if (drand48() < rand_skip_percent)
+        if (!sort_skip && drand48() < rand_skip_percent)
           continue;
+        if (sort_skip) {
+          dpd[i - 1][j - 1].previous_val = x[i][j];
+        }
         x[i][j] = (x0[i][j] + a * (x[i - 1][j] + x[i + 1][j] + x[i][j - 1] +
                                    x[i][j + 1])) /
                   c;
+        if (sort_skip) {
+          dpd[i - 1][j - 1].error = dpd[i - 1][j - 1].previous_val - x[i][j];
+          dpd[i - 1][j - 1].error *= dpd[i - 1][j - 1].error;
+          dpd[i - 1][j - 1].posX = i;
+          dpd[i - 1][j - 1].posY = j;
+        }
+      }
+    }
+    if (sort_skip) {
+      qsort(dpd, (M - 2) * (N - 2), sizeof(struct dataPosDeviation),
+            compareDeviation);
+      double threshold_d = ceil(((M - 2) * (N - 2)) * rand_skip_percent);
+      size_t threshold = (size_t)threshold_d;
+      size_t whereAmI = 0;
+      for (size_t i = 0; whereAmI < threshold && i < M - 2; ++i) {
+        for (size_t j = 0; whereAmI < threshold && j < N - 2; ++j, whereAmI++) {
+          // simulate skipping the computation for the values that have lowest
+          // update derivative
+          x[dpd[i][j].posX][dpd[i][j].posY] = dpd[i][j].previous_val;
+        }
       }
     }
     set_bnd(M, N, b, x);
   }
+  free(dpd);
 }
 
 static void diffuse(size_t M, size_t N, enum border_condition b,
