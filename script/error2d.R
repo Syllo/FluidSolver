@@ -5,7 +5,7 @@ if (!require(plyr, quietly = TRUE)) {
   library(plyr)
 }
 
-stdError <- function(arg1,arg2) {
+absDiff <- function(arg1,arg2) {
   return(sqrt((arg1-arg2)^2))
 }
 
@@ -27,9 +27,9 @@ if (!all.equal(simTableOriginal[,c("xpos", "ypos")],simTableAcr[,c("xpos", "ypos
 
 maxdens <- max(simTableOriginal$density)
 mindens <- min(simTableOriginal$density)
-range  <- stdError(maxdens,mindens)
+range  <- absDiff(maxdens,mindens)
 
-summaryData <- data.frame(unclass(summary(stdError(simTableAcr$density, simTableOriginal$density) / (range))))
+summaryData <- data.frame(unclass(summary((absDiff(simTableAcr$density, simTableOriginal$density)) / range * 100)))
 names(summaryData) <- ""
 print(summaryData, digits = 3, zero.print = "0")
 cat(sprintf("Range %.3f\n", range))
